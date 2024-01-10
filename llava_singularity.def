@@ -1,0 +1,32 @@
+Bootstrap: docker
+From: nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
+
+%files
+    /home/tateno/ドキュメント/LLaVA /opt/project
+
+%post
+    # Update and install necessary packages
+    apt-get update
+    apt-get install -y wget git
+
+    # Install Miniconda
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
+    bash /tmp/miniconda.sh -b -p /opt/conda
+    rm /tmp/miniconda.sh
+
+    # Initialize Conda for all shell types
+    /opt/conda/bin/conda init
+    . /opt/conda/etc/profile.d/conda.sh
+
+    # Create Conda environment
+    /opt/conda/bin/conda create -n llava python=3.10 -y
+
+    # Activate environment and install packages
+    /opt/conda/bin/conda run -n llava pip install --upgrade pip
+    /opt/conda/bin/conda run -n llava pip install -e /opt/project
+    /opt/conda/bin/conda run -n llava pip install -e "/opt/project[train]"
+    /opt/conda/bin/conda run -n llava pip install flash-attn --no-build-isolation
+
+%environment
+    . /opt/conda/etc/profile.d/conda.sh
+    conda activate llava
